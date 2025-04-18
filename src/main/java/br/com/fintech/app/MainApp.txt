@@ -1,0 +1,33 @@
+package br.com.fintech.app;
+
+import br.com.fintech.dao.UsuarioDAO;
+import br.com.fintech.dao.UsuarioDAOImpl;
+
+import java.util.Optional;
+import java.util.Scanner;
+
+public class MainApp {
+    public static void main(String[] args) throws Exception {
+        Scanner scanner = new Scanner(System.in);
+        UsuarioDAO userDao = new UsuarioDAOImpl();
+
+        System.out.println("1 - Registrar  2 - Login");
+        int opt = scanner.nextInt();
+        scanner.nextLine();
+
+        System.out.print("Usuário: ");
+        String user = scanner.nextLine();
+        System.out.print("Senha: ");
+        String pass = scanner.nextLine();
+
+        if (opt == 1) {
+            userDao.register(user, pass);
+            System.out.println("Registro realizado com sucesso!");
+        } else {
+            Optional<String> login = userDao.login(user, pass);
+            System.out.println(login.map(u -> "Bem-vindo, " + u)
+                                        .orElse("Usuário ou senha inválidos."));
+        }
+        scanner.close();
+    }
+}

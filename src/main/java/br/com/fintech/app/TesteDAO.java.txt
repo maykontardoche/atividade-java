@@ -1,0 +1,77 @@
+package br.com.fintech.app;
+
+import br.com.fintech.dao.*;
+import br.com.fintech.model.entity.*;
+import java.math.BigDecimal;
+import java.sql.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Scanner;
+// import java.util.UUID;
+
+public class TesteDAO {
+    public static void main(String[] args) throws Exception {
+        // --- Teste ClienteDAO ---
+        ClienteDAO cliDao = new ClienteDAOImpl();
+        for (int i = 1; i <= 5; i++) {
+            EnderecoEntity end = new EnderecoEntity("Rua "+i, "Bairro"+i, "Cidade"+i, "EST", "CEP"+i);
+            ClienteEntity c = new ClienteEntity("Cliente "+i, "cpf000"+i, "c"+i+"@mail.com", "9999-000"+i, end);
+            cliDao.insert(c);
+        }
+        List<ClienteEntity> clientes = cliDao.getAll();
+        System.out.println("--- Clientes cadastrados ---");
+        clientes.forEach(System.out::println);
+
+        // --- Teste ContaDAO ---
+        ContaDAO contaDao = new ContaDAOImpl();
+        for (int i = 1; i <= 5; i++) {
+            ContaEntity c = new ContaEntity("banco-00"+i, "cpf000"+i, "Titular"+i, "0001", "conta00"+i, i%2==0, BigDecimal.valueOf(1000+i));
+            contaDao.insert(c);
+        }
+        System.out.println("\n--- Contas cadastradas ---");
+        contaDao.getAll().forEach(System.out::println);
+
+        // --- Teste TransacaoDAO ---
+        TransacaoDAO txDao = new TransacaoDAOImpl();
+        for (int i = 1; i <= 5; i++) {
+            TransacaoEntity tx = new TransacaoEntity();
+            tx.setValor(BigDecimal.valueOf(100*i));
+            tx.setData(Date.valueOf("2025-05-0"+i));
+            tx.setTipo(i%2==0 ? "credito" : "debito");
+            tx.setContaDestino(contaDao.getAll().get(i-1));
+            txDao.insert(tx);
+        }
+        System.out.println("\n--- Transações cadastradas ---");
+        txDao.getAll().forEach(System.out::println);
+
+        // --- Teste InvestimentoDAO ---
+        InvestimentoDAO invDao = new InvestimentoDAOImpl();
+        for (int i = 1; i <= 5; i++) {
+            InvestimentoEntity inv = new InvestimentoEntity(
+                "cpf000"+i,
+                BigDecimal.valueOf(500+i*100),
+                BigDecimal.valueOf(2.5),
+                Date.valueOf("2025-04-0"+i)
+            );
+            invDao.insert(inv);
+        }
+        System.out.println("\n--- Investimentos cadastrados ---");
+        invDao.getAll().forEach(System.out::println);
+
+        // --- Teste de login/registro de usuário ---
+        UsuarioDAO usrDao = new UsuarioDAOImpl();
+        Scanner sc = new Scanner(System.in);
+        System.out.print("\n1=Registrar 2=Login > ");
+        int opt = sc.nextInt(); sc.nextLine();
+        System.out.print("Usuário: "); String u = sc.nextLine();
+        System.out.print("Senha : "); String p = sc.nextLine();
+        if (opt == 1) {
+            usrDao.register(u, p);
+            System.out.println("Registro ok.");
+        } else {
+            Optional<String> login = usrDao.login(u, p);
+            System.out.println(login.isPresent() ? "Bem-vindo, "+login.get() : "Credenciais inválidas.");
+        }
+        sc.close();
+    }
+}
